@@ -240,6 +240,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
+    .builds-row.single { grid-template-columns: 1fr; }  /* app chỉ có 1 bản build */
     .build-item {
       background: var(--surface2);
       border: 1px solid var(--border);
@@ -421,44 +422,38 @@
   /* ═══════════════════════════════════════════════════════════════
    *  ⚙️  CẤU HÌNH — Chỉ cần sửa phần này!
    * ═══════════════════════════════════════════════════════════════ */
-  // ── Repo PUBLIC chứa tất cả APK Releases ──
+  // ── Repo PUBLIC mặc định chứa APK Releases (app không khai repo riêng) ──
   const RELEASE_REPO = "app-releases";
   const GITHUB_USER  = "kiennhe06";
 
+  // MỖI APP MỘT MỤC. Hỗ trợ 2 kiểu:
+  //  • App có bản Dev + Live cố định: khai devFile/devTag + prodFile/prodTag.
+  //  • App chỉ có 1 nút tải (vd flashcore — có trang tải riêng, luôn bản mới):
+  //    khai prodUrl (link thẳng) + prodLabel + prodDesc, BỎ dev.
   const APPS = [
     {
-      id: "aura-tarot",
-      name: "Aura Tarot",
-      icon: "🔮",
-      repo: RELEASE_REPO,
-      devFile:  "aura_tarot_dev.apk",
-      prodFile: "aura_tarot_prod.apk",
-      devTag:   "dev",
-      prodTag:  "prod",
-      playStoreUrl: "https://play.google.com/store/apps/details?id=com.manhnhe.auratarot",
-    },
-    {
-      id: "klipi",
-      name: "Klipi",
-      icon: "🎬",
-      repo: RELEASE_REPO,
-      devFile:  "klipi_dev.apk",
-      prodFile: "klipi_prod.apk",
-      devTag:   "klipi-dev",
-      prodTag:  "klipi-prod",
+      id: "flashcore",
+      name: "flashcore",
+      icon: "https://playscore-42bfa.web.app/logo.png",  // logo thật
+      repo: "tyso",                                       // repo release của app
+      prodUrl:   "https://playscore-42bfa.web.app",       // trang tải (APK luôn mới nhất)
+      prodLabel: "Tải flashcore",
+      prodDesc:  "Bản chính thức · luôn cập nhật mới nhất",
       playStoreUrl: null,   // chưa có trên Play Store
     },
-    // ─── Thêm app khác ở đây ───
+
+    // ─── Thêm app MỚI ở đây (mỗi lần làm app khác) ───
+    // Kiểu A — app có Dev + Live trên GitHub Releases repo "app-releases":
     // {
-    //   id: "my-app",
-    //   name: "My App",
-    //   icon: "🚀",
-    //   repo: RELEASE_REPO,
-    //   devFile:  "my_app_dev.apk",
-    //   prodFile: "my_app_prod.apk",
-    //   devTag:   "my-dev",
-    //   prodTag:  "my-prod",
-    //   playStoreUrl: null,
+    //   id: "my-app", name: "My App", icon: "🚀", repo: RELEASE_REPO,
+    //   devFile: "my_app_dev.apk", prodFile: "my_app_prod.apk",
+    //   devTag: "my-dev", prodTag: "my-prod", playStoreUrl: null,
+    // },
+    // Kiểu B — app chỉ 1 nút tải (link thẳng hoặc trang tải riêng):
+    // {
+    //   id: "my-app", name: "My App", icon: "🚀", repo: "my-repo",
+    //   prodUrl: "https://.../download", prodLabel: "Tải App",
+    //   prodDesc: "Bản chính thức", playStoreUrl: null,
     // },
   ];
 
@@ -469,8 +464,12 @@
   }
 
   function renderCard(app, idx) {
-    const devUrl  = ghLink(app, app.devTag,  app.devFile);
-    const prodUrl = ghLink(app, app.prodTag, app.prodFile);
+    // Dev chỉ hiện khi app khai devFile; Live có thể dùng link thẳng (prodUrl).
+    const devUrl  = app.devFile ? ghLink(app, app.devTag, app.devFile) : null;
+    const prodUrl = app.prodUrl || ghLink(app, app.prodTag, app.prodFile);
+    const hasDev  = !!devUrl;
+    const prodLabel = app.prodLabel || 'Tải Live APK';
+    const prodDesc  = app.prodDesc  || `branch: main / tag: ${app.prodTag}`;
     const repoUrl = `https://github.com/${GITHUB_USER}/${app.repo}`;
 
     const isImg = app.icon && (app.icon.startsWith('http') || app.icon.startsWith('/'));
@@ -496,7 +495,8 @@
         </div>
       </div>
 
-      <div class="builds-row">
+      <div class="builds-row${hasDev ? '' : ' single'}">
+        ${hasDev ? `
         <!-- Dev Build -->
         <div class="build-item">
           <div class="build-label">
@@ -517,9 +517,9 @@
             </svg>
             Tải Dev APK
           </a>
-        </div>
+        </div>` : ''}
 
-        <!-- Prod Build -->
+        <!-- Live Build -->
         <div class="build-item">
           <div class="build-label">
             <span class="indicator prod"></span>
@@ -529,15 +529,15 @@
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
             </svg>
-            branch: main / tag: ${app.prodTag}
+            ${prodDesc}
           </div>
-          <a class="btn-download btn-prod" href="${prodUrl}" id="prod-${app.id}">
+          <a class="btn-download btn-prod" href="${prodUrl}"${app.prodUrl ? ' target="_blank"' : ''} id="prod-${app.id}">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            Tải Live APK
+            ${prodLabel}
           </a>
         </div>
       </div>
