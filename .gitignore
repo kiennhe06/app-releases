@@ -1,0 +1,41 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# API Keys & Secrets
+*.key
+*.pem
+*.private
+.firebaserc
+google-services.json
+firebase-adminsdk-*.json
+
+# IDE & System
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+
+# Build & Dependencies
+node_modules/
+dist/
+build/
+*.o
+*.a
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+Thumbs.db
+.DS_Store
+.env.*.swp
